@@ -9,7 +9,7 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
       - ./code/:/var/www/code
-    command: --default-authentication-plugin=mysql_native_password --sql-mode=STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION
+    command: --default-authentication-plugin=mysql_native_password --sql-mode=STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION --skip-log-bin
     restart: always
     logging:
       driver: "json-file"
@@ -42,6 +42,26 @@ services:
     ports:
       - "54320:5432"
 
+  mongo:
+    image: jichangfeng/docker-compose-laravel:mongo
+    build:
+      context: ./mongo
+    volumes:
+      - mongo-data:/data/db
+      - ./code/:/var/www/code
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=nosmoking
+      - TZ=Asia/Shanghai
+    ports:
+      - "27017:27017"
+
   redis:
     image: jichangfeng/docker-compose-laravel:redis
     build:
@@ -63,6 +83,21 @@ services:
       - TZ=Asia/Shanghai
     ports:
       - "63790:6379"
+
+  memcached:
+    image: jichangfeng/docker-compose-laravel:memcached
+    build:
+      context: ./memcached
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      - TZ=Asia/Shanghai
+    ports:
+      - "11211:11211"
 
   phpredisadmin:
     image: jichangfeng/docker-compose-laravel:phpredisadmin
@@ -155,14 +190,32 @@ services:
     environment:
       - TZ=Asia/Shanghai
 
+  php-fpm-5:
+    image: jichangfeng/docker-compose-laravel:php-fpm-5
+    build:
+      context: ./php-fpm-5
+    volumes:
+      - ./conf/php-5/php.ini:/usr/local/etc/php/php.ini
+      - ./conf/php-fpm-5/php-fpm.conf:/usr/local/etc/php-fpm.conf
+      - ./conf/php-fpm-5/php-fpm.d:/usr/local/etc/php-fpm.d
+      - ./code/:/var/www/code
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      - TZ=Asia/Shanghai
+
   php-fpm-8:
     image: jichangfeng/docker-compose-laravel:php-fpm-8
     build:
       context: ./php-fpm-8
     volumes:
-      - ./conf/php/php.ini:/usr/local/etc/php/php.ini
-      - ./conf/php-fpm/php-fpm.conf:/usr/local/etc/php-fpm.conf
-      - ./conf/php-fpm/php-fpm.d:/usr/local/etc/php-fpm.d
+      - ./conf/php-8/php.ini:/usr/local/etc/php/php.ini
+      - ./conf/php-fpm-8/php-fpm.conf:/usr/local/etc/php-fpm.conf
+      - ./conf/php-fpm-8/php-fpm.d:/usr/local/etc/php-fpm.d
       - ./code/:/var/www/code
     restart: always
     logging:
@@ -189,13 +242,29 @@ services:
     environment:
       - TZ=Asia/Shanghai
 
+  php-cli-5:
+    image: jichangfeng/docker-compose-laravel:php-cli-5
+    build:
+      context: ./php-cli-5
+    volumes:
+      - ~/.ssh/:/root/.ssh
+      - ./conf/php-5/php.ini:/usr/local/etc/php/php.ini
+      - ./code/:/var/www/code
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      - TZ=Asia/Shanghai
+
   php-cli-8:
     image: jichangfeng/docker-compose-laravel:php-cli-8
     build:
       context: ./php-cli-8
     volumes:
       - ~/.ssh/:/root/.ssh
-      - ./conf/php/php.ini:/usr/local/etc/php/php.ini
+      - ./conf/php-8/php.ini:/usr/local/etc/php/php.ini
       - ./code/:/var/www/code
     logging:
       driver: "json-file"
@@ -228,6 +297,8 @@ services:
       - "44300:443"
     depends_on:
       - php-fpm
+      - php-fpm-5
+      - php-fpm-8
 
   composer:
     image: jichangfeng/docker-compose-laravel:php-cli
@@ -264,4 +335,5 @@ services:
 volumes:
   mysql-data: 
   postgres-data: 
+  mongo-data: 
   redis-data: 

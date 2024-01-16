@@ -6,26 +6,29 @@
 
 **常用的 Docker 操作命令：**
 ```
-# 拉取镜像
+# 拉取 全部/部分 镜像
 docker-compose pull
-# 构建，启动项目中的 全部/部分 服务容器
+docker-compose pull nginx php-fpm php-fpm-5 php-fpm-8
+# 构建，启动项目中的 全部/部分 服务容器（建议先拉取镜像，这样会跳过构建过程）
 docker-compose up -d
-docker-compose up -d nginx php-fpm mysql redis
+docker-compose up -d nginx php-fpm php-fpm-5 php-fpm-8
 # 重启项目中的 全部/部分 服务容器
 docker-compose restart
-docker-compose restart nginx php-fpm mysql redis
+docker-compose restart nginx php-fpm php-fpm-5 php-fpm-8
 # 停止并移除项目中的 全部/部分 服务容器
 docker-compose rm -f -s
-docker-compose rm -f -s nginx php-fpm mysql redis
+docker-compose rm -f -s nginx php-fpm php-fpm-5 php-fpm-8
 # 列出项目中的服务容器
 docker-compose ps
 # 查看项目中的服务容器内运行的进程
 docker-compose top
 # 进入项目中正在运行的服务容器
 docker-compose exec php-fpm bash
+docker-compose exec php-fpm-5 bash
 docker-compose exec php-fpm-8 bash
 # 启动并进入项目中的服务容器，--rm 表示退出容器后自动删除容器
 docker-compose run --rm php-cli bash
+docker-compose run --rm php-cli-5 bash
 docker-compose run --rm php-cli-8 bash
 ......
 ```
@@ -39,8 +42,14 @@ docker-compose run --rm php-cli-8 bash
   >- 端口：54320 -> 转发到 5432
   >- 用户名：postgres
   >- 密码：nosmoking
+ - `mongo` 7.0.4
+  >- 端口：27017 -> 转发到 27017
+  >- 用户名：root
+  >- 密码：nosmoking
  - `redis` 5.0.9
   >- 端口：63790 -> 转发到 6379
+ - `memcached` 1.6.22-alpine
+  >- 端口：11211 -> 转发到 11211
  - `phpredisadmin`
   >- 端口：6380 -> 转发到 6380
   >- 用户名：admin
@@ -54,8 +63,10 @@ docker-compose run --rm php-cli-8 bash
  - `gearmand` 1.1.19.1
   >- 端口：4730 -> 转发到 4730
  - `php-fpm` 7.4.33
+ - `php-fpm-5` 5.6.40
  - `php-fpm-8` 8.2
  - `php-cli` 7.4.33
+ - `php-cli-5` 5.6.40
  - `php-cli-8` 8.2
  - `nginx` 1.18.0
   >- 端口：8000 -> 转发到 80
@@ -84,6 +95,17 @@ docker-compose run --rm php-cli-8 bash
     docker-compose build phpredisadmin
     docker-compose rm -f -s phpredisadmin
     docker-compose up -d phpredisadmin
+```
+
+**使用 memcache 监控页：**
+ - 修改 hosts 增加 `127.0.0.1 default.www`（格式：`Docker容器可访问IP 域名`）
+ - 访问地址：`http://default.www:8000/memcache.php`
+ - 访问用户名、密码：`admin nosmoking`
+ - 添加memcached数据库：
+```
+ # 修改 code/default/memcache.php 文件，在 MEMCACHE_SERVERS 数组里追加，示例如下：
+    $MEMCACHE_SERVERS[] = 'memcached:11211'; // add more as an array
+    $MEMCACHE_SERVERS[] = 'beta.memcached.com:11211';
 ```
 
 **使用 beanstalkd-console 管理工具：**

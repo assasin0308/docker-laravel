@@ -11,7 +11,10 @@ RUN install-php-extensions ast
 RUN install-php-extensions bcmath
 RUN install-php-extensions intl
 RUN install-php-extensions gd
+RUN install-php-extensions imagick
 RUN install-php-extensions event
+RUN install-php-extensions memcache
+RUN install-php-extensions memcached
 RUN install-php-extensions msgpack
 RUN install-php-extensions mysqli
 RUN install-php-extensions mcrypt
@@ -33,13 +36,15 @@ RUN install-php-extensions xhprof
 RUN install-php-extensions zlib
 RUN install-php-extensions zip
 RUN install-php-extensions zookeeper
+RUN install-php-extensions mongodb
 RUN install-php-extensions @composer
 
 RUN composer config -g repo.packagist composer https://mirrors.aliyun.com/composer/
 
-RUN apt-get update
-
-RUN apt-get install -y git wget tree
+RUN apt-get update \
+&& apt-get install -y git wget tree cups-client smbclient \
+&& apt-get clean \
+&& rm -rf /var/lib/apt/lists/*
 
 COPY entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint.sh && \
